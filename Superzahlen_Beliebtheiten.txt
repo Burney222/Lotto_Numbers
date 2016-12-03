@@ -1,0 +1,12 @@
+#Quelle: http://www.brefeld.homepage.t-online.de/lottoquoten.html
+#Superzahl	Beliebtheit
+0	0,788
+1	0,869
+2	0,920
+9	0,969
+4	0,971
+3	1,055
+6	1,058
+8	1,066
+5	1,142
+7	1,158
