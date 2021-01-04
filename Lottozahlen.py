@@ -16,54 +16,84 @@ def zahlen_einlesen(filename):
                 for i, entry in enumerate(entries):
                     entry = entry.replace(",", ".")
                     if i%2 == 0:
-                        zahlen.append(int(entry))
+                        zahlen.append(entry)
                     else:
                         beliebtheiten.append(float(entry))
 
     return zahlen, beliebtheiten
 
 
-def zahlen_ziehen(zahlen, zahlen_wkten, superzahlen, superzahlen_wkten):
-    #Zahlen ziehen
-    lotto_zahlen = np.sort(np.random.choice(zahlen, size=6, replace=False, p=zahlen_wkten))
+def zahlen_ziehen(zahlen, zahlen_wkten, superzahlen, superzahlen_wkten, lotterie="6aus49"):
+    #Normale Zahlen ziehen
+    if lotterie == "6aus49":
+        n = 6
+    elif lotterie == "eurojackpot":
+        n = 5
 
-    #Superzahl ziehen, bis man eine hat, die nicht auch als "normale" Zahl gezogen wurde
-    superzahl = lotto_zahlen[0]
-    while superzahl in lotto_zahlen:
-        superzahl = np.random.choice(superzahlen, p=superzahlen_wkten)
+    lotto_zahlen = np.sort(np.random.choice(zahlen, size=n, replace=False, p=zahlen_wkten))
+
+    if lotterie == "6aus49":
+        #Superzahl ziehen, bis man eine hat, die nicht auch als "normale" Zahl gezogen wurde
+        superzahl = lotto_zahlen[0]
+        while superzahl in lotto_zahlen:
+            superzahl = np.random.choice(superzahlen, p=superzahlen_wkten)
+    elif lotterie == "eurojackpot":
+        #Eurozahlen ziehen bis man welche hat, die nicht auch als "normale" Zahlen gezogen wurden
+        eurozahlen = (lotto_zahlen[0], lotto_zahlen[1])
+        while eurozahlen[0] in lotto_zahlen or eurozahlen[1] in lotto_zahlen:
+            eurozahlen = np.random.choice(superzahlen, p=superzahlen_wkten).split("-")
+
+        superzahl = "{}, {}".format(eurozahlen[0], eurozahlen[1])
 
     return lotto_zahlen, superzahl
 
 
+def print_usage():
+    print("BENUTZUNG: python {} <6aus49/eurojackpot> <#Reihen>".format(sys.argv[0]))
+    sys.exit(1)
+
+
 if __name__ == "__main__":
     #Wieviele Reihen sollen gespielt werden?
-    if len(sys.argv) == 2:
-        n_reihen = int(sys.argv[1])
-    elif len(sys.argv) == 1:
+    if len(sys.argv) == 1:
+        lotterie = "6aus49"
         n_reihen = 1
+    elif len(sys.argv) == 2:
+        lotterie = sys.argv[1]
+        n_reihen = 1
+    elif len(sys.argv) == 3:
+        lotterie = sys.argv[1]
+        n_reihen = int(sys.argv[2])
     else:
-        print("BENUTZUNG: python {} <Anzahl_Reihen>".format(sys.argv[0]))
+        print_usage()
+
+    if lotterie != "6aus49" and lotterie != "eurojackpot":
+        print_usage()
 
     #(Normale) Zahlen einlesen
-    zahlen, beliebtheiten = zahlen_einlesen("Zahlen_Beliebtheiten.txt")
+    zahlen, beliebtheiten = zahlen_einlesen(f"data/{lotterie}/Zahlen_Beliebtheiten.txt")
 
-    #Gewichte erzeugen
+    #Gewichte anhand der Beliebtheiten erzeugen
     gewichte = 1 / (np.asarray(beliebtheiten)**2)
     wahrscheinlichkeiten = gewichte/np.sum(gewichte)
 
-    #Das Ganze nun noch fuer die Superzahl
-    superzahlen, superbeliebtheiten = zahlen_einlesen("Superzahlen_Beliebtheiten.txt")
+    #Das Ganze nun noch fuer die Superzahl/Eurozahlen
+    superzahlen, superbeliebtheiten = zahlen_einlesen(f"data/{lotterie}/Superzahlen_Beliebtheiten.txt")
 
     #Gewichte erzeugen
     supergewichte = 1 / (np.asarray(superbeliebtheiten)**2)
     superwahrscheinlichkeiten = supergewichte/np.sum(supergewichte)
 
     #Reihen ziehen und ausgeben
-    print("{0:>10} | {1:>23} | {2:>9}".format("Reihe", "Lottozahlen", "Superzahl"))
+    if lotterie == "6aus49":
+        print("{0:>10} | {1:>23} | {2:>9}".format("Reihe", "Zahlen", "Superzahl"))
+    elif lotterie == "eurojackpot":
+        print("{0:>10} | {1:>23} | {2:>9}".format("Reihe", "Zahlen", "Eurozahlen"))
+
     for i in range(n_reihen):
         lotto_zahlen, superzahl = zahlen_ziehen(zahlen, wahrscheinlichkeiten, superzahlen,
-                                                superwahrscheinlichkeiten)
-        print("{0:>10} | {1:>23} | {2:>9}".format(i+1, ", ".join(map(str,lotto_zahlen)),superzahl))
+                                                superwahrscheinlichkeiten, lotterie)
+        print("{0:>10} | {1:>23} | {2:>9}".format(i+1, ", ".join(map(str, lotto_zahlen)), superzahl))
 
 
-raw_input()  #Noetig um die Ausgabe in Windows geoeffnet zu lassen
+#input()  #Noetig um die Ausgabe in Windows geoeffnet zu lassen
