@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from __future__ import print_function
 import numpy as np
 import sys
@@ -42,6 +43,7 @@ def zahlen_ziehen(zahlen, zahlen_wkten, superzahlen, superzahlen_wkten, lotterie
         eurozahlen = (lotto_zahlen[0], lotto_zahlen[1])
         while eurozahlen[0] in lotto_zahlen or eurozahlen[1] in lotto_zahlen:
             eurozahlen = np.random.choice(superzahlen, p=superzahlen_wkten).split("-")
+            eurozahlen = [int(eurozahlen[0]), int(eurozahlen[1])]
 
         superzahl = "{}, {}".format(eurozahlen[0], eurozahlen[1])
 
@@ -72,6 +74,7 @@ if __name__ == "__main__":
 
     #(Normale) Zahlen einlesen
     zahlen, beliebtheiten = zahlen_einlesen(f"data/{lotterie}/Zahlen_Beliebtheiten.txt")
+    zahlen = [int(zahl) for zahl in zahlen]
 
     #Gewichte anhand der Beliebtheiten erzeugen
     gewichte = 1 / (np.asarray(beliebtheiten)**2)
